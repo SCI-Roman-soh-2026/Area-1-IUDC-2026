@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drills Competition Timer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 20px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .logo-left {
+            flex-shrink: 0;
+        }
+        .logo-right {
+            flex-shrink: 0;
+        }
+        .title-section {
+            flex: 1;
+            text-align: center;
+        }
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 12px;
+            font-size: 36px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .segment-indicator {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .segment-badge {
+            display: inline-block;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .segment-drills {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .segment-creative {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .segment-paused {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .timer-display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .time {
+            font-size: 96px;
+            font-weight: 700;
+            color: #1e3c72;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        .time.warning {
+            color: #ea580c;
+        }
+        .time.danger {
+            color: #dc2626;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .pause-timer {
+            text-align: center;
+            font-size: 24px;
+            color: #64748b;
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+        .pause-timer.active {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-start {
+            background: #10b981;
+            color: white;
+        }
+        .btn-start:hover {
+            background: #059669;
+        }
+        .btn-pause {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-pause:hover {
+            background: #d97706;
+        }
+        .btn-creative {
+            background: #6366f1;
+            color: white;
+        }
+        .btn-creative:hover {
+            background: #4f46e5;
+        }
+        .btn-reset {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #dc2626;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .status-bar {
+            margin-top: 32px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .status-text {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 24px;
+            }
+            .logo-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .logo {
+                width: 60px;
+                height: 60px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .time {
+                font-size: 64px;
+            }
+            .btn {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-header">
+            <!-- <img src="logo-left.png" alt="NPCC Logo" class="logo logo-left" id="logoLeft"> -->
+            <div class="title-section">
+                <h1>Inter-Unit Drills Competition 2026 Timer</h1>
+                <p class="subtitle">10-Minute Competition with Creative Segment</p>
+            </div>
+            <!-- <img src="logo-right.png" alt="Area 1 Logo" class="logo logo-right" id="logoRight"> -->
+        </div>
+        
+        <div class="segment-indicator">
+            <span id="segmentBadge" class="segment-badge segment-drills">17 Compulsory Drills</span>
+        </div>
+        
+        <div class="timer-display">
+            <div id="timeDisplay" class="time">10:00</div>
+        </div>
+        
+        <div id="pauseTimer" class="pause-timer">Creative segment: 30s pause</div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn btn-start">Start</button>
+            <button id="pauseBtn" class="btn btn-pause" disabled>Pause</button>
+            <button id="creativeBtn" class="btn btn-creative" disabled>Creative Segment</button>
+            <button id="resetBtn" class="btn btn-reset">Reset</button>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-text" id="statusText">
+                <strong>Instructions:</strong> Start the timer when first command is given. When permission is given for the cadet to proceed with their Creative segment, click "Creative Segment" to pause for 30 seconds.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mainTimeRemaining = 600; // 10 minutes in seconds
+        let pauseTimeRemaining = 30; // 30 seconds
+        let isRunning = false;
+        let isPaused = false;
+        let isInCreativeSegment = false;
+        let mainInterval = null;
+        let pauseInterval = null;
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const pauseTimerDisplay = document.getElementById('pauseTimer');
+        const segmentBadge = document.getElementById('segmentBadge');
+        const statusText = document.getElementById('statusText');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const creativeBtn = document.getElementById('creativeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(mainTimeRemaining);
+            
+            // Color coding for urgency
+            timeDisplay.classList.remove('warning', 'danger');
+            if (mainTimeRemaining <= 60 && mainTimeRemaining > 30) {
+                timeDisplay.classList.add('warning');
+            } else if (mainTimeRemaining <= 30) {
+                timeDisplay.classList.add('danger');
+            }
+        }
+
+        function updatePauseDisplay() {
+            if (isInCreativeSegment) {
+                pauseTimerDisplay.textContent = `Creative pause: ${pauseTimeRemaining}s`;
+                pauseTimerDisplay.classList.add('active');
+            } else {
+                pauseTimerDisplay.textContent = 'Creative segment: 30s pause';
+                pauseTimerDisplay.classList.remove('active');
+            }
+        }
+
+        function updateSegmentBadge() {
+            if (isInCreativeSegment) {
+                if (isPaused) {
+                    segmentBadge.textContent = 'Creative Segment (Paused)';
+                    segmentBadge.className = 'segment-badge segment-paused';
+                } else {
+                    segmentBadge.textContent = 'Creative Segment';
+                    segmentBadge.className = 'segment-badge segment-creative';
+                }
+            } else {
+                segmentBadge.textContent = 'Drills Segment';
+                segmentBadge.className = 'segment-badge segment-drills';
+            }
+        }
+
+        function updateStatus(message) {
+            statusText.innerHTML = `<strong>Status:</strong> ${message}`;
+        }
+
+        function startTimer() {
+            isRunning = true;
+            isPaused = false;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            creativeBtn.disabled = false;
+            
+            updateStatus('Timer running - Drills segment in progress');
+            
+            mainInterval = setInterval(() => {
+                if (mainTimeRemaining > 0) {
+                    mainTimeRemaining--;
+                    updateDisplay();
+                    
+                    if (mainTimeRemaining === 0) {
+                        endCompetition();
+                    }
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isPaused = true;
+            clearInterval(mainInterval);
+            pauseBtn.textContent = 'Resume';
+            pauseBtn.classList.remove('btn-pause');
+            pauseBtn.classList.add('btn-start');
+            updateStatus('Timer paused');
+            updateSegmentBadge();
+        }
+
+        function resumeTimer() {
+            isPaused = false;
+            pauseBtn.textContent = 'Pause';
+            pauseBtn.classList.remove('btn-start');
+            pauseBtn.classList.add('btn-pause');
+            
+            if (isInCreativeSegment) {
+                updateStatus('Timer running - Creative segment in progress');
+            } else {
+                updateStatus('Timer running - Drills segment in progress');
+            }
+            updateSegmentBadge();
+            
+            mainInterval = setInterval(() => {
+                if (mainTimeRemaining > 0) {
+                    mainTimeRemaining--;
+                    updateDisplay();
+                    
+                    if (mainTimeRemaining === 0) {
+                        endCompetition();
+                    }
+                }
+            }, 1000);
+        }
+
+        function startCreativeSegment() {
+            isInCreativeSegment = true;
+            clearInterval(mainInterval);
+            pauseTimeRemaining = 30;
+            
+            updateSegmentBadge();
+            updatePauseDisplay();
+            updateStatus('Creative segment started - Main timer paused for 30 seconds');
+            
+            creativeBtn.disabled = true;
+            pauseBtn.disabled = true;
+            
+            pauseInterval = setInterval(() => {
+                pauseTimeRemaining--;
+                updatePauseDisplay();
+                
+                if (pauseTimeRemaining === 0) {
+                    endCreativeSegment();
+                }
+            }, 1000);
+        }
+
+        function endCreativeSegment() {
+            clearInterval(pauseInterval);
+            isInCreativeSegment = false;
+            updatePauseDisplay();
+            updateSegmentBadge();
+            pauseBtn.disabled = false;
+            updateStatus('Creative segment complete - Main timer resuming');
+            
+            // Resume main timer
+            mainInterval = setInterval(() => {
+                if (mainTimeRemaining > 0) {
+                    mainTimeRemaining--;
+                    updateDisplay();
+                    
+                    if (mainTimeRemaining === 0) {
+                        endCompetition();
+                    }
+                }
+            }, 1000);
+        }
+
+        function endCompetition() {
+            clearInterval(mainInterval);
+            clearInterval(pauseInterval);
+            isRunning = false;
+            
+            timeDisplay.textContent = "TIME UP!";
+            updateStatus('Competition complete! 🎉');
+            
+            startBtn.disabled = true;
+            pauseBtn.disabled = true;
+            creativeBtn.disabled = true;
+        }
+
+        function resetTimer() {
+            clearInterval(mainInterval);
+            clearInterval(pauseInterval);
+            
+            mainTimeRemaining = 600;
+            pauseTimeRemaining = 30;
+            isRunning = false;
+            isPaused = false;
+            isInCreativeSegment = false;
+            
+            updateDisplay();
+            updatePauseDisplay();
+            updateSegmentBadge();
+            updateStatus('<strong>Instructions:</strong> Start the timer for the Drills segment. When ready for the Creative segment, click "Creative Segment" to pause for 30 seconds.');
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+            pauseBtn.classList.remove('btn-start');
+            pauseBtn.classList.add('btn-pause');
+            creativeBtn.disabled = true;
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', () => {
+            if (isPaused) {
+                resumeTimer();
+            } else {
+                pauseTimer();
+            }
+        });
+        creativeBtn.addEventListener('click', startCreativeSegment);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Initialize display
+        updateDisplay();
+        updatePauseDisplay();
+    </script>
+</body>
+</html>
